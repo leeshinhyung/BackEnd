@@ -15,16 +15,20 @@ public class PostDto {
     @Builder
     public static class Request {
         private int id;
+        private int postView;
+        private int postLike;
         private String postTitle;
         private String postContent;
         private String postTag;
         private boolean postIsAnonymous;
         private String postPhoto;
         private AppUser appUser;
-        
+
         public Post toEntity() {
             return Post.builder()
                     .id(id)
+                    .postView(postView)
+                    .postLike(postLike)
                     .postTitle(postTitle)
                     .postContent(postContent)
                     .postTag(postTag)
