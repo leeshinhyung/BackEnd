@@ -39,7 +39,7 @@ public class Post extends BaseEntity {
     @Column
     private String postPhoto;
     
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private List<Comment> comment;
     
     @ManyToOne(fetch = FetchType.LAZY)
@@ -53,7 +53,7 @@ public class Post extends BaseEntity {
         this.postIsAnonymous = postIsAnonymous;
         this.postPhoto = postPhoto;
     }
-    
+
     @Builder
     public Post(int id, int postView, int postLike, String postTitle, String postContent, String postTag, LocalDateTime postCreateDate, LocalDateTime postUpdateDate, boolean postIsAnonymous, String postPhoto, List<Comment> comment, AppUser appUser) {
         this.id = id;
