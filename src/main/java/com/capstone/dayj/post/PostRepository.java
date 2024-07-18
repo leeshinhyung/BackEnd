@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer> {
     List<Post> findByPostTag(String postTag);
+
+    List<Post> findByPostTitleContainingOrPostContentContaining(String titleKeyword, String contentKeyword);
 }

@@ -7,6 +7,8 @@ import com.capstone.dayj.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +40,8 @@ public class PostService {
     public PostDto.Response readPostById(int id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        
+
+        post.setPostView(post.getPostView() + 1);
         return new PostDto.Response(post);
     }
 
@@ -66,5 +69,23 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         postRepository.deleteById(post.getId());
+    }
+
+    public List<PostDto.Response> searchPostsByKeyword(String keyword) {
+        List<Post> posts = postRepository.findByPostTitleContainingOrPostContentContaining(keyword, keyword);
+
+        if (posts.isEmpty())
+            throw new CustomException(ErrorCode.POST_NOT_FOUND);
+
+        return posts.stream().map(PostDto.Response::new).collect(Collectors.toList());
+    }
+
+
+    public void likePost(int postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        post.setPostLike(post.getPostLike() + 1);
+        postRepository.save(post);
     }
 }

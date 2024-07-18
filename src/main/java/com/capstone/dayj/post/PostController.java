@@ -42,4 +42,14 @@ public class PostController {
     public void deletePostById(@PathVariable int post_id) {
         postService.deletePostById(post_id);
     }
+
+    @GetMapping("search/{keyword}")
+    public List<PostDto.Response> readPostByKeyword(@PathVariable String keyword){
+        return postService.searchPostsByKeyword(keyword);
+    }
+
+    @PatchMapping("/{post_id}/like")
+    public void likePost (@PathVariable int post_id) {
+        postService.likePost(post_id);
+    }
 }
