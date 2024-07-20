@@ -6,7 +6,7 @@ import com.capstone.dayj.exception.CustomException;
 import com.capstone.dayj.exception.ErrorCode;
 import com.capstone.dayj.planOption.PlanOptionDto;
 import com.capstone.dayj.planOption.PlanOptionRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,19 +22,19 @@ public class PlanService {
     
     @Transactional
     public void createPlan(int app_user_id, PlanDto.Request dto) {
-        AppUser appUser = appUserRepository.findById(app_user_id)
+        AppUser findAppUser = appUserRepository.findById(app_user_id)
                 .orElseThrow(() -> new CustomException(ErrorCode.APP_USER_NOT_FOUND));
         
-        dto.setAppUser(appUser);
-        Plan savedPlan = planRepository.save(dto.toEntity());
-
+        dto.setAppUser(findAppUser);
+        Plan newPlan = planRepository.save(dto.toEntity());
+        
         PlanOptionDto.Request newPlanOption = PlanOptionDto.Request.builder()
-                .plan(savedPlan)
+                .plan(newPlan)
                 .build();
         planOptionRepository.save(newPlanOption.toEntity());
     }
     
-    @Transactional
+    @Transactional(readOnly = true)
     public List<PlanDto.Response> readAllPlan(int app_user_id) {
         List<Plan> findPlans = planRepository.findAllByAppUserId(app_user_id);
         
@@ -44,17 +44,18 @@ public class PlanService {
         return findPlans.stream().map(PlanDto.Response::new).collect(Collectors.toList());
     }
     
-    @Transactional
-    public PlanDto.Response readPlanById(int app_user_id, int plan_id) {
-        Plan plan = planRepository.findByAppUserIdAndId(app_user_id, plan_id)
+    @Transactional(readOnly = true)
+    public PlanDto.Response readPlanById(int plan_id) {
+        Plan findPlan = planRepository.findById(plan_id)
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAN_NOT_FOUND));
         
-        return new PlanDto.Response(plan);
+        return new PlanDto.Response(findPlan);
     }
     
-    @Transactional
-    public List<PlanDto.Response> readPlanByPlanTag(int app_user_id, String planTag) {
-        List<Plan> findPlans = planRepository.findAllByAppUserIdAndPlanTag(app_user_id, planTag);
+    @Transactional(readOnly = true)
+    public List<PlanDto.Response> readPlanByPlanTag(String planTag) {
+        List<Plan> findPlans = planRepository.findAll()
+                .stream().filter(plan -> plan.getPlanTag().equals(planTag)).toList();
         
         if (findPlans.isEmpty())
             throw new CustomException(ErrorCode.PLAN_NOT_FOUND);
@@ -64,16 +65,16 @@ public class PlanService {
     
     @Transactional
     public void updatePlan(int app_user_id, int plan_id, PlanDto.Request dto) {
-        Plan plan = planRepository.findByAppUserIdAndId(app_user_id, plan_id)
+        Plan findPlan = planRepository.findByAppUserIdAndId(app_user_id, plan_id)
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAN_NOT_FOUND));
         
-        plan.update(dto.getPlanTag(), dto.getGoal(), dto.getPlanPhoto(), dto.isPublic(), dto.isComplete());
+        findPlan.update(dto.getPlanTag(), dto.getGoal(), dto.getPlanPhoto(), dto.isPublic(), dto.isComplete());
     }
     
     @Transactional
-    public void deletePlanById(int app_user_id, int plan_id) {
-        Plan plan = planRepository.findByAppUserIdAndId(app_user_id, plan_id)
+    public void deletePlanById(int plan_id) {
+        Plan findPlan = planRepository.findById(plan_id)
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAN_NOT_FOUND));
-        planRepository.delete(plan);
+        planRepository.delete(findPlan);
     }
 }
